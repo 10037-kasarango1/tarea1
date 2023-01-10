@@ -1,0 +1,406 @@
+.open DBEnsamblajeMisiles.db
+
+PRAGMA foreign_keys = ON;
+
+--------------------1. CREACION DE TABLAS Y SUS RELACIONES---------------------
+
+-----------------------------------proveedor-----------------------------------
+create table proveedor(
+id_pro TEXT PRIMARY KEY NOT NULL,
+nombre_pro TEXT NOT NULL,
+tipo_pro TEXT NOT NULL,
+email_pro TEXT NOT NULL,
+telefono_pro TEXT NOT NULL,
+descripcion_pro TEXT NOT NULL,
+status_pro TEXT NOT NULL
+);
+
+-----------------------------------pieza-----------------------------------
+create table pieza(
+id_pieza TEXT PRIMARY KEY NOT NULL,
+nombre_pieza TEXT NOT NULL,
+tipo_pieza TEXT NOT NULL,
+cantidad_pieza INT NOT NULL,
+fecha_fac_pieza TEXT NOT NULL
+);
+
+-----------------------------------componente-----------------------------------
+create table componente(
+id_com TEXT PRIMARY KEY NOT NULL,
+nombre_com TEXT NOT NULL,
+tipo_com TEXT NOT NULL
+);
+
+-----------------------------------rol-----------------------------------
+create table rol(
+id_rol TEXT PRIMARY KEY NOT NULL,
+nombre_rol TEXT NOT NULL,
+fecha_asigna_rol TEXT NOT NULL,
+status_rol TEXT NOT NULL
+);
+
+-----------------------------------permisos-----------------------------------
+create table permiso(
+id_perm TEXT PRIMARY KEY NOT NULL,
+entidad_perm TEXT NOT NULL,
+tipo_perm TEXT NOT NULL,
+fecha_asigna_perm TEXT NOT NULL,
+fecha_caduca_perm TEXT NOT NULL,
+status_perm TEXT NOT NULL
+);
+
+-----------------------------------misil-----------------------------------
+create table misil(
+id_mis TEXT PRIMARY KEY NOT NULL,
+nombre_mis TEXT NOT NULL,
+tipo_mis TEXT NOT NULL,
+fecha_entrega_mis TEXT NOT NULL,
+status_mis TEXT NOT NULL
+);
+
+-----------------------------------parametro-----------------------------------
+create table parametro(
+id_par TEXT PRIMARY KEY NOT NULL,
+descripcion_par TEXT NOT NULL,
+decreto_par TEXT NOT NULL,
+status_par TEXT NOT NULL
+);
+
+-----------------------------------departamento-----------------------------------
+create table departamento(
+id_depar TEXT PRIMARY KEY NOT NULL,
+nombre_depar TEXT NOT NULL,
+tipo_depar TEXT NOT NULL,
+descripcion_depar TEXT NOT NULL
+);
+
+-----------------------------------personal-----------------------------------
+create table personal(
+id_per TEXT PRIMARY KEY NOT NULL,
+genero_per TEXT NOT NULL,
+nombre_per TEXT NOT NULL,
+email_per TEXT NOT NULL,
+fecha_nac_per TEXT NOT NULL,
+id_depar TEXT NOT NULL,
+FOREIGN KEY (id_depar) REFERENCES departamento (id_depar)
+);
+
+-----------------------------------ingeniero-----------------------------------
+create table ingeniero(
+id_per TEXT PRIMARY KEY NOT NULL,
+especialidad_ing TEXT NOT NULL,
+FOREIGN KEY (id_per) REFERENCES personal (id_per)
+);
+
+-----------------------------------tecnico-----------------------------------
+create table tecnico(
+id_per TEXT PRIMARY KEY NOT NULL,
+horas_experiencia INT NOT NULL,
+FOREIGN KEY (id_per) REFERENCES personal (id_per)
+);
+
+-----------------------------------administrador-----------------------------------
+create table administrador(
+id_per TEXT PRIMARY KEY NOT NULL,
+num_proyectos_realizados INT NOT NULL,
+FOREIGN KEY (id_per) REFERENCES personal (id_per)
+);
+
+-----------------------------------cumplir-----------------------------------
+create table cumplir(
+nota TEXT NOT NULL,
+id_mis TEXT NOT NULL,
+id_par TEXT NOT NULL,
+FOREIGN KEY (id_mis) REFERENCES misil (id_mis),
+FOREIGN KEY (id_par) REFERENCES parametro (id_par),
+PRIMARY KEY (id_mis,id_par)
+);
+
+-----------------------------------abastecer-----------------------------------
+create table abastecer(
+fecha_compra TEXT NOT NULL,
+id_pieza TEXT NOT NULL,
+id_pro TEXT NOT NULL,
+FOREIGN KEY (id_pieza) REFERENCES pieza (id_pieza),
+FOREIGN KEY (id_pro) REFERENCES proveedor (id_pro),
+PRIMARY KEY (id_pieza,id_pro)
+);
+
+-----------------------------------integrar-----------------------------------
+create table integrar(
+cantidad_necesaria INT NOT NULL,
+id_com TEXT NOT NULL,
+id_pieza TEXT NOT NULL,
+FOREIGN KEY (id_com) REFERENCES componente (id_com),
+FOREIGN KEY (id_pieza) REFERENCES pieza (id_pieza),
+PRIMARY KEY (id_com,id_pieza)
+);
+
+-----------------------------------configurar-----------------------------------
+create table configurar(
+descripcion_conf TEXT NOT NULL,
+id_perm TEXT NOT NULL,
+id_rol TEXT NOT NULL,
+FOREIGN KEY (id_perm) REFERENCES permiso (id_perm),
+FOREIGN KEY (id_rol) REFERENCES rol (id_rol),
+PRIMARY KEY (id_perm,id_rol)
+);
+
+-----------------------------------ensamblar-----------------------------------
+create table ensamblar(
+fecha_ensamblar TEXT NOT NULL,
+id_rol TEXT NOT NULL,
+id_per TEXT NOT NULL,
+id_mis TEXT NOT NULL,
+id_com TEXT NOT NULL,
+FOREIGN KEY (id_per) REFERENCES personal (id_per),
+FOREIGN KEY (id_rol) REFERENCES rol (id_rol),
+FOREIGN KEY (id_mis) REFERENCES misil (id_mis),
+FOREIGN KEY (id_com) REFERENCES componente (id_com),
+PRIMARY KEY (id_rol,id_per,id_mis,id_com)
+);
+
+--------------------2. IMPORTACION DATOS DESDE ARCHIVO CSV--------------------
+
+.mode csv
+.import ArchivosCSVEnsamblajeMisiles/dataset_proveedor.csv proveedor2
+.import ArchivosCSVEnsamblajeMisiles/dataset_pieza.csv pieza2
+.import ArchivosCSVEnsamblajeMisiles/dataset_componentes.csv componente2
+.import ArchivosCSVEnsamblajeMisiles/dataset_Roles.csv rol2
+.import ArchivosCSVEnsamblajeMisiles/dataset_Permisos.csv permiso2
+.import ArchivosCSVEnsamblajeMisiles/dataset_misil.csv misil2
+.import ArchivosCSVEnsamblajeMisiles/dataset_parametro.csv parametro2
+.import ArchivosCSVEnsamblajeMisiles/dataset_departamento.csv departamento2
+.import ArchivosCSVEnsamblajeMisiles/dataset_users.csv personal2
+.import ArchivosCSVEnsamblajeMisiles/dataset_ingeniero.csv ingeniero2
+.import ArchivosCSVEnsamblajeMisiles/dataset_tecnico.csv tecnico2
+.import ArchivosCSVEnsamblajeMisiles/dataset_administrador.csv administrador2
+.import ArchivosCSVEnsamblajeMisiles/dataset_cumplir.csv cumplir2
+.import ArchivosCSVEnsamblajeMisiles/dataset_abastecer.csv abastecer2
+.import ArchivosCSVEnsamblajeMisiles/dataset_integrar.csv integrar2
+.import ArchivosCSVEnsamblajeMisiles/dataset_configurar.csv configurar2
+.import ArchivosCSVEnsamblajeMisiles/dataset_ensamblar.csv ensamblar2
+
+--------------------3. COPIADO DE DATOS--------------------
+
+insert into proveedor(id_pro,nombre_pro,tipo_pro,email_pro,telefono_pro,descripcion_pro,status_pro)
+select Id_pro,nombre_pro,tipo_pro,email_pro,telefono_pro,descripcion_pro,Status_pro
+from proveedor2;
+
+insert into pieza(id_pieza,nombre_pieza,tipo_pieza,cantidad_pieza,fecha_fac_pieza)
+select Id_pieza,nombre_pieza,tipo_pieza,cantidad_pieza,fecha_fac_pieza
+from pieza2;
+
+insert into componente(id_com,nombre_com,tipo_com)
+select Id_com,nombre_com,Tipo_com
+from componente2;
+
+insert into rol(id_rol,nombre_rol,fecha_asigna_rol,status_rol)
+select Id_rol,nombre_rol,fecha_asigna_rol,Status_rol
+from rol2;
+
+insert into permiso(id_perm,entidad_perm,tipo_perm,fecha_asigna_perm,fecha_caduca_perm,status_perm)
+select Id_perm,entidad_perm,tipo_perm,fecha_asigna_perm,fecha_caduca_perm,Status_perm
+from permiso2;
+
+insert into misil(id_mis,nombre_mis,tipo_mis,fecha_entrega_mis,status_mis)
+select Id_mis,Nombre_mis,Tipo_mis,Fecha_entrega_mis,Status_mis
+from misil2;
+
+insert into parametro(id_par,descripcion_par,decreto_par,status_par)
+select Id_par,Descripcion_par,Decreto_par,Status_par
+from parametro2;
+
+insert into departamento(id_depar,nombre_depar,tipo_depar,descripcion_depar)
+select Id_depar,nombre_depar,Tipo_depar,descripcion_depar
+from departamento2;
+
+insert into personal(id_per,genero_per,nombre_per,email_per,fecha_nac_per,id_depar)
+select Id_per,genero_per,nombre_per,email_per,fecha_nac_per,Id_depar
+from personal2;
+
+insert into ingeniero(id_per,especialidad_ing)
+select Id_per,especialidad_ing
+from ingeniero2;
+
+insert into tecnico(id_per,horas_experiencia)
+select Id_per,horas_experiencia
+from tecnico2;
+
+insert into administrador(id_per,num_proyectos_realizados)
+select Id_per,num_proyectos_realizados
+from administrador;
+
+insert into cumplir(nota,id_mis,id_par)
+select Nota,Id_mis,Id_par
+from cumplir2;
+
+insert into abastecer(fecha_compra,id_pieza,id_pro)
+select fecha_compra,Id_pieza,Id_pro
+from abastecer2;
+
+insert into integrar(cantidad_necesaria,id_com,id_pieza)
+select cantidad_necesaria,Id_com,Id_pieza
+from integrar2;
+
+insert into configurar(descripcion_conf,id_perm,id_rol)
+select descripcion_conf,Id_perm,Id_rol
+from configurar2;
+
+insert into ensamblar(fecha_ensamblar,id_rol,id_per,id_mis,id_com)
+select Fecha_ensamblar,Id_rol,Id_per,Id_mis,Id_com
+from ensamblar2;
+
+--------------------4. ELIMINACION TABLAS AUXILIARES--------------------
+
+drop table proveedor2;
+drop table pieza2;
+drop table componente2;
+drop table rol2;
+drop table permiso2;
+drop table misil2;
+drop table parametro2;
+drop table departamento2;
+drop table personal2;
+drop table ingeniero2;
+drop table tecnico2;
+drop table administrador2;
+drop table cumplir2;
+drop table abastecer2;
+drop table integrar2;
+drop table configurar2;
+drop table ensamblar2;
+
+--------------------5. VERIFICACION DE LOS ESQUEMAS DE LAS TABLAS CREADAS--------------------
+
+.schema
+
+--------------------6. DESARROLLO DE LAS CONSULTAS--------------------
+
+-----------------------------------primera query con having-----------------------------------
+
+Se requiere conocer la lista de los proveedores que abastecen más de 85 piezas para poder ensamblar misiles, considere que los proveedores deben encontrarse en estado activo.
+
+select pro.nombre_pro, pro.status_pro, pieza.cantidad_pieza
+from abastecer as abs
+inner join pieza as pieza on pieza.id_pieza = abs.id_pieza
+inner join proveedor as pro on pro.id_pro = abs.id_pro
+Where pro.status_pro like 'Active'
+group by pro.id_pro
+having pieza.cantidad_pieza >85;
+
+(TABLA ABASTECER PIEZA PROVEEDOR)
+
+-----------------------------------segunda query con having-----------------------------------
+
+La nasa y el departamento de defensa, necesitan conocer los componentes que requieren entre 90 y 125 pieza para ensamblar misiles. Considere mostrar: Nombre del componente y la cantidad de piezas necesarias para integrar un componente.
+
+select com.nombre_com, pieza.cantidad_pieza
+from integrar as int
+inner join pieza as pieza on pieza.id_pieza = int.id_pieza
+inner join componente as com on com.id_com = int.id_com
+group by com.nombre_com
+having pieza.cantidad_pieza between 95 and 125;
+
+(TABLA COMPONENTE INTEGRAR PIEZA)
+
+-----------------------------------tercera query con having-----------------------------------
+
+Se necesita listar los componentes que requieren ser integrados por 100 piezas. Considere mostrar el id del componete, el nombre del componente y la cantidad de piezas.
+
+select com.id_com, com.nombre_com, pieza.cantidad_pieza
+from integrar as int
+inner join pieza as pieza on pieza.id_pieza = int.id_pieza
+inner join componente as com on com.id_com = int.id_com
+group by com.id_com
+having pieza.cantidad_pieza=100;
+
+(TABLA COMPONENTE INTEGRAR PIEZA)
+
+-----------------------------------primera query con group by-----------------------------------
+
+Se requiere conocer la cantidad de permisos que se necesita para configurar cada tipo de rol que se encuentre en estado activo, a su vez dichos roles deben ser configurados unicamente para la entidad Personal
+
+select rol.nombre_rol, count(perm.tipo_perm) as cantidad_perm
+from configurar as conf
+inner join permiso as perm on perm.id_perm = conf.id_perm
+inner join rol as rol on rol.id_rol = conf.id_rol
+where rol.status_rol like 'Activo' and perm.entidad_perm like 'Personal'
+group by rol.nombre_rol;
+
+(TABLA CONFIGURAR PERMISO ROL)
+
+-----------------------------------segunda query con group by-----------------------------------
+
+Se necesita conocer cuantas piezas son abastecidas por cada tipo de proveedor, considere que cada proveedor debe encontrarse en estado activo.
+
+select pro.tipo_pro, count(pieza.cantidad_pieza) as cantidad_pieza
+from abastecer as abs
+inner join pieza as pieza on pieza.id_pieza = abs.id_pieza
+inner join proveedor as pro on pro.id_pro = abs.id_pro
+where pro.status_pro='Active'
+group by pro.tipo_pro;
+
+(TABLA ABASTECER PIEZA PROVEEDOR)
+
+-----------------------------------tercera query con group by-----------------------------------
+
+Se requiere conocer la cantidad de componentes que se requieren para ensamblar cada tipo de misil respectivamente. 
+
+select mis.tipo_mis, count(com.tipo_com) as cantidad_com
+from ensamblar as ens
+inner join misil as mis on mis.id_mis = ens.id_mis
+inner join componente as com on com.id_com = ens.id_com
+group by mis.tipo_mis;
+
+(TABLA COMPONENTE ENSAMBLAR MISIL)
+
+-----------------------------------primera query con funciones de agregación-----------------------------------
+
+Se necesita conocer la cantidad total de roles asignados para ensamblar misiles, tanto para hombres como para mujeres del personal
+
+select per.genero_per, count(rol.id_rol) as total_rol
+from ensamblar as ens
+inner join personal as per on per.id_per = ens.id_per
+inner join rol as rol on rol.id_rol = ens.id_rol
+group by per.genero_per;
+
+(TABLA ENSAMBLAR PERSONAL ROL)
+
+-----------------------------------segunda query con funciones de agregación-----------------------------------
+
+Se desea conocer la cantidad de pieza máxima que se necesita para integrar los componentes. Además, debe considerar agrupar los componentes de acuerdo al tipo.
+
+select com.tipo_com, max(pieza.cantidad_pieza) as cantidad_max_pieza
+from integrar as int
+inner join pieza as pieza on pieza.id_pieza = int.id_pieza
+inner join componente as com on com.id_com = int.id_com
+group by com.tipo_com;
+
+(TABLA COMPONENTE INTEGRAR PIEZA)
+
+-----------------------------------primera query a libre elección-----------------------------------
+
+Para ensamblar misiles, la nasa requiere visualizar una lista de los miembros del personal que tengan la letra A al inicio y al final de su nombre y que su vez poseen un rol en estado activo. Considere mostrar: el nombre de cada miembro del personal, el nombre del rol y el estado del rol.
+
+select per.nombre_per, rol.nombre_rol, rol.status_rol
+from ensamblar as ens
+inner join personal as per on per.id_per = ens.id_per
+inner join rol as rol on rol.id_rol = ens.id_rol
+where per.nombre_per like 'A%' and per.nombre_per like '%A' and rol.status_rol like 'Activo'
+order by per.nombre_per;
+
+(TABLA ENSAMBLAR PERSONAL ROL)
+
+-----------------------------------segunda query a libre elección-----------------------------------
+
+La nasa requiere conocer los proveedores que tengan la letra O al final de su nombre y la cantidad de piezas que cada uno provee para la creación de misiles. Además, debe considerar que los proveedores deben encontrarse en estado activo y el tipo de proveedor al que pertenecen.
+
+select pro.nombre_pro, pro.tipo_pro, pieza.cantidad_pieza
+from abastecer as abs
+inner join proveedor as pro on pro.id_pro = abs.id_pro
+inner join pieza as pieza on pieza.id_pieza = abs.id_pieza
+where pro.status_pro = 'Active' and pro.nombre_pro like '%o'
+order by pro.tipo_pro;
+
+(TABLA ABASTECER PIEZA PROVEEDOR)
